@@ -48,9 +48,9 @@ public class PharmacyGame : MonoBehaviour
     private bool done;
     private int mistakes; // 틀린 약을 올린 횟수 (별점에 반영)
     private int chosen = -1; // 고른 증상
-    private bool greeting;   // 카페 메뉴 인사 중 (끝나면 증상으로 진행)
     private string cafeMenu;
     private int cafeSymptom = -1;
+    private string cafeCure;
     private float startTime;
     private Coroutine typing;
     private Tween shakeTween;
@@ -74,6 +74,10 @@ public class PharmacyGame : MonoBehaviour
         // 카페 주문은 이번 방문에서 한 번만 쓰고 지움 (다른 곳에 갔다 오면 처음부터)
         cafeMenu = TourState.CafeMenu;
         cafeSymptom = TourState.VisitedCafe ? TourState.SymptomIndex : -1;
+        cafeCure = TourState.Cure;
+        // 카페에서 먹은 메뉴 때문에 생긴 증상은 선택지 문구를 "떡볶이를 먹었더니 목이 칼칼해요"처럼 바꿈
+        if (cafeSymptom >= 0 && cafeSymptom < choiceButtons.Length && !string.IsNullOrEmpty(TourState.Complaint))
+            choiceButtons[cafeSymptom].GetComponentInChildren<TMP_Text>().text = TourState.Complaint;
         TourState.Reset();
 
         // 약사에게 말을 걸기 전까지는 말풍선과 증상 선택을 숨김
@@ -85,7 +89,7 @@ public class PharmacyGame : MonoBehaviour
 
     private void OnTalk()
     {
-        if (done || greeting) return;
+        if (done) return;
         PlaySfx(1f);
 
         if (chosen >= 0)
@@ -93,25 +97,11 @@ public class PharmacyGame : MonoBehaviour
             // 이미 증상을 말했으면 약 위치를 다시 알려줌
             Say($"{WithJosa(target, "은", "는")} {symptoms[chosen].where}에 있어요.\n찾아서 계산대에 올려주세요!");
         }
-        else if (cafeSymptom >= 0 && cafeSymptom < symptoms.Length)
-        {
-            StartCoroutine(GreetFromCafe(cafeSymptom));
-        }
         else
         {
             Say("어서 오세요, 불광 약국입니다!\n어디가 불편해서 오셨어요?");
             choicePanel.SetActive(true);
         }
-    }
-
-    // 카페에서 고른 메뉴를 약사가 알아보고, 그 증상으로 바로 진행
-    private IEnumerator GreetFromCafe(int index)
-    {
-        greeting = true;
-        Say($"어서 오세요, 불광 약국입니다!\n카페에서 {WithJosa(cafeMenu, "을", "를")} 드셨군요.\n혹시 \"{symptoms[index].say}\"?");
-        yield return new WaitForSeconds(3.5f);
-        greeting = false;
-        Choose(index);
     }
 
     private void OnDestroy()
@@ -129,7 +119,8 @@ public class PharmacyGame : MonoBehaviour
         chosen = index;
         target = s.medicine;
         choicePanel.SetActive(false);
-        Say($"{s.reply}\n{WithJosa(target, "은", "는")} {s.where}에 있어요.\n찾아서 계산대에 올려주세요!");
+        string reply = index == cafeSymptom && !string.IsNullOrEmpty(cafeCure) ? cafeCure : s.reply;
+        Say($"{reply}\n{WithJosa(target, "은", "는")} {s.where}에 있어요.\n찾아서 계산대에 올려주세요!");
         if (hintText != null) hintText.text = $"{WithJosa(target, "을", "를")} 찾아\n계산대에 올려주세요";
     }
 
