@@ -60,10 +60,14 @@ public static class TitleBuilder
         PharmacyBuilder.MakeUIText("Subtitle", blockRt, "카페에서 주문하고, 약국에서 약을 찾아보세요!", new Vector2(0f, -75f), new Vector2(940f, 60f), 38f, Cream);
 
         title.startButton = PharmacyBuilder.MakeButton("StartBtn", panel, "투어 시작", new Vector2(0f, -130f), new Vector2(520f, 120f), new Color(0.55f, 0.85f, 0.6f));
-        title.placesButton = PharmacyBuilder.MakeButton("PlacesBtn", panel, "장소 선택", new Vector2(-330f, -260f), new Vector2(300f, 100f), new Color(0.98f, 0.8f, 0.45f));
-        title.stampsButton = PharmacyBuilder.MakeButton("StampsBtn", panel, "스탬프", new Vector2(0f, -260f), new Vector2(300f, 100f), new Color(0.95f, 0.65f, 0.7f));
-        title.settingsButton = PharmacyBuilder.MakeButton("SettingsBtn", panel, "설정", new Vector2(330f, -260f), new Vector2(300f, 100f), new Color(0.85f, 0.85f, 0.9f));
+        // 아래 줄 버튼 4개: 장소 선택 / 스탬프 / 내 사진 / 설정
+        var bottom = new Vector2(225f, 100f);
+        title.placesButton = PharmacyBuilder.MakeButton("PlacesBtn", panel, "장소 선택", new Vector2(-345f, -260f), bottom, new Color(0.98f, 0.8f, 0.45f));
+        title.stampsButton = PharmacyBuilder.MakeButton("StampsBtn", panel, "스탬프", new Vector2(-115f, -260f), bottom, new Color(0.95f, 0.65f, 0.7f));
+        title.photosButton = PharmacyBuilder.MakeButton("PhotosBtn", panel, "내 사진", new Vector2(115f, -260f), bottom, new Color(0.6f, 0.8f, 1f));
+        title.settingsButton = PharmacyBuilder.MakeButton("SettingsBtn", panel, "설정", new Vector2(345f, -260f), bottom, new Color(0.85f, 0.85f, 0.9f));
         BuildStampPanel(canvas, title);
+        BuildPhotoPanel(canvas, title);
         title.startScene = "Scene2";
         title.placesMenu = moveUI.gameObject;
         title.settings = settings;
@@ -97,6 +101,35 @@ public static class TitleBuilder
         }
         board.summary = PharmacyBuilder.MakeUIText("Summary", panel, "", new Vector2(0f, -190f), new Vector2(900f, 60f), 40f, Cream);
         title.stampCloseButton = PharmacyBuilder.MakeButton("StampCloseBtn", panel, "돌아가기", new Vector2(0f, -285f), new Vector2(360f, 90f), new Color(0.98f, 0.8f, 0.45f));
+        panel.gameObject.SetActive(false);
+    }
+
+    // 내 사진: 최근 사진 3장 + 안내 + 돌아가기. 스탬프 판과 같은 자리에 겹쳐 두고 평소엔 숨김
+    private static void BuildPhotoPanel(RectTransform canvas, TitleScreen title)
+    {
+        var panel = PharmacyBuilder.MakePanel("Photo_Panel", canvas, Vector2.zero, new Vector2(1000f, 700f), new Color(0f, 0f, 0f, 0.6f));
+        title.photoPanel = panel.gameObject;
+        var gallery = panel.gameObject.AddComponent<PhotoGallery>();
+
+        PharmacyBuilder.MakeUIText("Title", panel, "내 사진", new Vector2(0f, 285f), new Vector2(800f, 90f), 72f, Color.white);
+
+        gallery.slots = new RawImage[3];
+        for (int i = 0; i < 3; i++)
+        {
+            var frame = PharmacyBuilder.MakePanel($"Frame_{i}", panel, new Vector2(-310f + 310f * i, 60f), new Vector2(290f, 190f), Color.white);
+            var go = new GameObject("Photo", typeof(RectTransform), typeof(RawImage));
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(frame, false);
+            rt.sizeDelta = new Vector2(266f, 150f);
+            var raw = go.GetComponent<RawImage>();
+            raw.raycastTarget = false;
+            raw.enabled = false;
+            gallery.slots[i] = raw;
+        }
+
+        gallery.emptyText = PharmacyBuilder.MakeUIText("Empty", panel, "아직 찍은 사진이 없어요", new Vector2(0f, 60f), new Vector2(800f, 80f), 52f, Cream);
+        PharmacyBuilder.MakeUIText("Hint", panel, "어디서든 컨트롤러 A 버튼(키보드 P)을 누르면 사진을 찍어요", new Vector2(0f, -120f), new Vector2(920f, 60f), 38f, Cream);
+        title.photoCloseButton = PharmacyBuilder.MakeButton("PhotoCloseBtn", panel, "돌아가기", new Vector2(0f, -250f), new Vector2(360f, 90f), new Color(0.98f, 0.8f, 0.45f));
         panel.gameObject.SetActive(false);
     }
 

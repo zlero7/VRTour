@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using TMPro;
 using UnityEditor;
 using UnityEditor.Events;
@@ -37,6 +37,7 @@ public static class SettingsBuilder
         if (scene.name == "Main") TitleBuilder.Build(scene);
         else Build(scene, true);
         StampBuilder.Build(scene);
+        FeatureBuilder.Build(scene);
     }
 
     [MenuItem("VRTour/타이틀 + 설정 전체 씬에 적용")]
@@ -48,6 +49,7 @@ public static class SettingsBuilder
             if (scene.name == "Main") TitleBuilder.Build(scene);
             else Build(scene, true);
             StampBuilder.Build(scene);
+            FeatureBuilder.Build(scene);
             EditorSceneManager.SaveScene(scene);
         }
         Debug.Log("[SettingsBuilder] Main, Scene1~3에 적용하고 저장했습니다.");
@@ -118,37 +120,49 @@ public static class SettingsBuilder
         return settings;
     }
 
-    // 상단 MainUI의 [이동UI] 버튼을 복제해 [설정] 버튼으로 만들고, 세 버튼이 나란히 들어가게 패널을 넓힘
+    // 상단 MainUI의 [이동UI] 버튼을 복제해 [설정] 버튼으로 만듦
     private static void AddSettingsButton(Scene scene, SettingsPanel settings)
     {
-        var oldBtn = Find(scene, ButtonName);
+        var button = AddBarButton(scene, ButtonName, "설정");
+        if (button == null) return;
+        UnityEventTools.AddPersistentListener(button.onClick, settings.Toggle);
+        var sfx = button.GetComponent<SfxPlayer>();
+        if (sfx != null) UnityEventTools.AddPersistentListener(button.onClick, sfx.Play);
+        LayoutBar(scene);
+    }
+
+    // 상단 바 맨 끝에 새 버튼을 복제해 붙임 (같은 이름이 있으면 지우고 새로). 위치는 LayoutBar로 다시 정렬
+    internal static Button AddBarButton(Scene scene, string buttonName, string label)
+    {
+        var oldBtn = Find(scene, buttonName);
         if (oldBtn != null) Object.DestroyImmediate(oldBtn.gameObject);
 
         var openBtn = Find(scene, "UIOpenBtn");
-        var homeBtn = Find(scene, "HomeBtn");
-        var mainUI = (RectTransform)Find(scene, "MainUI");
-        var main = (RectTransform)Find(scene, "Main");
-        if (openBtn == null || homeBtn == null || mainUI == null || main == null)
+        if (openBtn == null)
         {
-            Debug.LogWarning($"[SettingsBuilder] {scene.name}: MainUI/HomeBtn/UIOpenBtn을 찾지 못해 [설정] 버튼은 건너뜁니다.");
-            return;
+            Debug.LogWarning($"[SettingsBuilder] {scene.name}: UIOpenBtn을 찾지 못해 [{label}] 버튼은 건너뜁니다.");
+            return null;
         }
 
         var clone = Object.Instantiate(openBtn.gameObject, openBtn.parent);
-        clone.name = ButtonName;
+        clone.name = buttonName;
         var button = clone.GetComponent<Button>();
         for (int i = button.onClick.GetPersistentEventCount() - 1; i >= 0; i--)
             UnityEventTools.RemovePersistentListener(button.onClick, i);
-        clone.GetComponentInChildren<TMP_Text>(true).text = "설정";
-        UnityEventTools.AddPersistentListener(button.onClick, settings.Toggle);
-        var sfx = clone.GetComponent<SfxPlayer>();
-        if (sfx != null) UnityEventTools.AddPersistentListener(button.onClick, sfx.Play);
+        clone.GetComponentInChildren<TMP_Text>(true).text = label;
+        return button;
+    }
 
-        // 버튼들을 같은 간격으로 가운데 정렬: 집으로 / 이동UI / (맵이동UI) / 설정
-        var buttons = new System.Collections.Generic.List<Transform> { homeBtn, openBtn };
-        var mapBtn = Find(scene, "MapTPUIBtn");
-        if (mapBtn != null) buttons.Add(mapBtn);
-        buttons.Add(clone.transform);
+    // 상단 바(Main)의 버튼들을 순서대로 같은 간격으로 가운데 정렬하고, 버튼 수에 맞게 패널 폭을 조절
+    internal static void LayoutBar(Scene scene)
+    {
+        var mainUI = (RectTransform)Find(scene, "MainUI");
+        var main = (RectTransform)Find(scene, "Main");
+        if (mainUI == null || main == null) return;
+
+        var buttons = new System.Collections.Generic.List<RectTransform>();
+        foreach (Transform child in main)
+            if (child.GetComponent<Button>() != null) buttons.Add((RectTransform)child);
 
         const float step = 68.79f;
         float width = 145.27f + (buttons.Count - 2) * step; // 버튼 2개일 때 원래 폭
@@ -159,7 +173,7 @@ public static class SettingsBuilder
 
         // 크기를 바꾼 뒤에 위치를 정해야 버튼이 패널 안에 들어옴
         for (int i = 0; i < buttons.Count; i++)
-            SetX((RectTransform)buttons[i], width / 2f + (i - (buttons.Count - 1) / 2f) * step);
+            SetX(buttons[i], width / 2f + (i - (buttons.Count - 1) / 2f) * step);
     }
 
     // 왼쪽 위 anchor 기준 x 좌표. localPosition은 방금 연 씬에서 값이 틀어져서 anchoredPosition을 씀

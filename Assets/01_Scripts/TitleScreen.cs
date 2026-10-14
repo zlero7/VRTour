@@ -19,20 +19,26 @@ public class TitleScreen : MonoBehaviour
     public Button stampsButton;
     public GameObject stampPanel;      // 스탬프 판
     public Button stampCloseButton;
+    public Button photosButton;
+    public GameObject photoPanel;      // 내 사진 (갤러리)
+    public Button photoCloseButton;
     public string startScene = "Scene2";
 
     private void Start()
     {
         if (placesMenu != null) placesMenu.SetActive(false);
         stampPanel.SetActive(false);
+        photoPanel.SetActive(false);
 
         startButton.onClick.AddListener(StartTour);
         placesButton.onClick.AddListener(OpenPlaces);
         stampsButton.onClick.AddListener(OpenStamps);
         stampCloseButton.onClick.AddListener(ShowTitle);
+        photosButton.onClick.AddListener(OpenPhotos);
+        photoCloseButton.onClick.AddListener(ShowTitle);
         settingsButton.onClick.AddListener(() => settings.Open());
         settings.Closed += ShowTitle;
-        settings.hideWhileOpen = new[] { titlePanel, placesMenu, stampPanel };
+        settings.hideWhileOpen = new[] { titlePanel, placesMenu, stampPanel, photoPanel };
 
         // 등장 연출: 서서히 나타나며 커지고, 이후 제목이 둥실거림
         titleGroup.alpha = 0f;
@@ -64,11 +70,21 @@ public class TitleScreen : MonoBehaviour
         stampPanel.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
     }
 
-    // 장소 선택 메뉴의 닫기(X) 버튼, 스탬프 판의 돌아가기 버튼에서 호출
+    private void OpenPhotos()
+    {
+        titlePanel.SetActive(false);
+        photoPanel.SetActive(true);
+        photoPanel.transform.DOKill();
+        photoPanel.transform.localScale = Vector3.one * 0.9f;
+        photoPanel.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+    }
+
+    // 장소 선택 메뉴의 닫기(X) 버튼, 스탬프 판·내 사진의 돌아가기 버튼에서 호출
     public void ShowTitle()
     {
         if (placesMenu != null) placesMenu.SetActive(false);
         stampPanel.SetActive(false);
+        photoPanel.SetActive(false);
         titlePanel.SetActive(true);
     }
 
@@ -79,5 +95,6 @@ public class TitleScreen : MonoBehaviour
         if (titleGroup != null) titleGroup.DOKill();
         if (titlePanel != null) titlePanel.transform.DOKill();
         if (stampPanel != null) stampPanel.transform.DOKill();
+        if (photoPanel != null) photoPanel.transform.DOKill();
     }
 }

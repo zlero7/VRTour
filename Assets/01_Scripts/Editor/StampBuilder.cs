@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -64,9 +64,9 @@ public static class StampBuilder
         var cam = SettingsBuilder.Find(scene, "Main Camera");
         if (cam == null) return;
 
-        // 시작 위치에서 보는 방향 앞쪽 1.3m, 눈높이보다 살짝 아래에 퀴즈판을 세움
+        // 시작 위치에서 보는 방향 앞쪽 1.8m (길안내 화살표가 1.2m 앞에 뜨므로 겹치지 않게), 눈높이보다 살짝 아래에 퀴즈판을 세움
         Vector3 fwd = Vector3.ProjectOnPlane(cam.forward, Vector3.up).normalized;
-        Vector3 pos = cam.position + fwd * 1.3f + Vector3.down * 0.1f;
+        Vector3 pos = cam.position + fwd * 1.8f + Vector3.down * 0.1f;
 
         var quiz = new GameObject(QuizName).AddComponent<QuizGame>();
         var audio = quiz.gameObject.AddComponent<AudioSource>();
@@ -74,7 +74,7 @@ public static class StampBuilder
         audio.clip = AssetDatabase.LoadAssetAtPath<AudioClip>(PharmacyBuilder.SfxPath);
         quiz.sfx = audio;
 
-        var canvas = PharmacyBuilder.MakeCanvas("Quiz_Canvas", quiz.transform, pos, new Vector2(1000f, 700f), 0.0012f);
+        var canvas = PharmacyBuilder.MakeCanvas("Quiz_Canvas", quiz.transform, pos, new Vector2(1000f, 700f), 0.0017f);
         canvas.rotation = Quaternion.LookRotation(fwd);
 
         // ----- 시작 화면 -----
