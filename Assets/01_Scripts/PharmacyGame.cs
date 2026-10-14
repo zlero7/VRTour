@@ -154,6 +154,7 @@ public class PharmacyGame : MonoBehaviour
             npc.DOPunchPosition(Vector3.up * 0.15f, 0.5f, 2);
         }
         if (hintText != null) hintText.gameObject.SetActive(false);
+        StampBook.Collect(Stamp.Pharmacy);
         StartCoroutine(ShowResult());
     }
 
@@ -165,7 +166,8 @@ public class PharmacyGame : MonoBehaviour
         int stars = Mathf.Clamp(3 - mistakes, 1, 3);
         string cafe = !string.IsNullOrEmpty(cafeMenu) ? $"카페에서 {WithJosa(cafeMenu, "을", "를")} 주문하고" : "카페는 들르지 않고";
         resultText.text = $"불광동 먹자골목 투어 완료!\n{cafe} 약국에서 {WithJosa(target, "을", "를")} 샀어요\n" +
-                          $"별점 {stars}/3 (실수 {mistakes}번) / 소요 시간 {sec / 60:00}:{sec % 60:00}";
+                          $"별점 {stars}/3 (실수 {mistakes}번) / 소요 시간 {sec / 60:00}:{sec % 60:00}\n" +
+                          $"스탬프 {StampBook.Count}/{StampBook.Total}";
 
         Transform t = resultPanel.transform;
         Vector3 scale = t.localScale;

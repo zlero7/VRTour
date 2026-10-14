@@ -87,6 +87,7 @@ public class CafeOrder : MonoBehaviour
         PlaySfx(1.2f);
         ordered = menus[index];
         TourState.SetCafeOrder(ordered.name, ordered.symptomIndex, ordered.complaint, ordered.cure);
+        StampBook.Collect(Stamp.Cafe);
 
         menuPanel.SetActive(false);
         Say($"{ordered.name} 나왔습니다!\n{ordered.reply}");

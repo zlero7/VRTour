@@ -36,6 +36,7 @@ public static class SettingsBuilder
         var scene = SceneManager.GetActiveScene();
         if (scene.name == "Main") TitleBuilder.Build(scene);
         else Build(scene, true);
+        StampBuilder.Build(scene);
     }
 
     [MenuItem("VRTour/타이틀 + 설정 전체 씬에 적용")]
@@ -46,6 +47,7 @@ public static class SettingsBuilder
             var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
             if (scene.name == "Main") TitleBuilder.Build(scene);
             else Build(scene, true);
+            StampBuilder.Build(scene);
             EditorSceneManager.SaveScene(scene);
         }
         Debug.Log("[SettingsBuilder] Main, Scene1~3에 적용하고 저장했습니다.");
